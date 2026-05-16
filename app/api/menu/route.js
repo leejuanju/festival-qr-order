@@ -9,7 +9,7 @@ export async function GET() {
       supabase.from('settings').select('*').eq('id', 'main').single(),
       supabase
         .from('menu_items')
-        .select('id,name,description,category,price,is_sold_out,sort_order')
+        .select('id,name,description,category,price,image_url,is_sold_out,sort_order')
         .eq('is_visible', true)
         .order('sort_order', { ascending: true })
     ]);

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { resolveTableKey } from '@/lib/tables';
 
 function buildSummary(orders) {
   return orders.reduce((acc, order) => {
@@ -33,22 +34,10 @@ function buildSummary(orders) {
 
 export async function GET(_request, context) {
   try {
-    const { tableNumber: tableNumberParam } = await context.params;
-    const tableNumber = Number(tableNumberParam);
-
-    if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 10) {
-      return NextResponse.json({ error: '테이블 번호가 올바르지 않습니다.' }, { status: 400 });
-    }
-
+    const { tableNumber: tableKey } = await context.params;
     const supabase = getSupabaseAdmin();
-
-    const { data: table, error: tableError } = await supabase
-      .from('booth_tables')
-      .select('*')
-      .eq('number', tableNumber)
-      .single();
-
-    if (tableError) throw tableError;
+    const table = await resolveTableKey(supabase, tableKey);
+    const tableNumber = Number(table.number);
 
     if (!table?.current_session_id) {
       return NextResponse.json({

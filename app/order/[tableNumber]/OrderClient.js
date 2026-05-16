@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { formatShortTime, formatWon, kitchenLabels, paymentLabels } from '@/lib/format';
 
+const DEFAULT_SUCCESS_IMAGE = '/assets/bear-order-complete.png';
+
 function statusClass(value) {
   return `badge ${value || ''}`;
 }
@@ -92,11 +94,12 @@ function TableOrderHistory({ tableNumber, data, loading, error, onClose, onRefre
   );
 }
 
-export default function OrderClient({ tableNumber }) {
+export default function OrderClient({ tableKey }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [menuItems, setMenuItems] = useState([]);
   const [settings, setSettings] = useState(null);
+  const [table, setTable] = useState(null);
   const [cart, setCart] = useState({});
   const [error, setError] = useState('');
   const [createdOrder, setCreatedOrder] = useState(null);
@@ -106,14 +109,27 @@ export default function OrderClient({ tableNumber }) {
   const [historyError, setHistoryError] = useState('');
   const [historyData, setHistoryData] = useState(null);
 
-  async function loadMenu() {
+  const tableNumber = table?.number;
+  const tableHeroImage = table?.hero_image_url || settings?.guest_character_image_url || '';
+  const successImage = settings?.order_success_image_url || DEFAULT_SUCCESS_IMAGE;
+
+  async function loadInitial() {
+    setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/menu', { cache: 'no-store' });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || '메뉴를 불러오지 못했습니다.');
-      setMenuItems(json.menuItems || []);
-      setSettings(json.settings);
+      const [menuRes, tableRes] = await Promise.all([
+        fetch('/api/menu', { cache: 'no-store' }),
+        fetch(`/api/tables/${encodeURIComponent(tableKey)}`, { cache: 'no-store' })
+      ]);
+
+      const menuJson = await menuRes.json();
+      const tableJson = await tableRes.json();
+      if (!menuRes.ok) throw new Error(menuJson.error || '메뉴를 불러오지 못했습니다.');
+      if (!tableRes.ok) throw new Error(tableJson.error || '테이블 QR을 확인하지 못했습니다.');
+
+      setMenuItems(menuJson.menuItems || []);
+      setSettings(menuJson.settings);
+      setTable(tableJson.table);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -122,11 +138,10 @@ export default function OrderClient({ tableNumber }) {
   }
 
   async function loadTableHistory() {
-    if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 10) return;
     setHistoryLoading(true);
     setHistoryError('');
     try {
-      const res = await fetch(`/api/orders/table/${tableNumber}`, { cache: 'no-store' });
+      const res = await fetch(`/api/orders/table/${encodeURIComponent(tableKey)}`, { cache: 'no-store' });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '주문내역을 불러오지 못했습니다.');
       setHistoryData(json);
@@ -142,15 +157,21 @@ export default function OrderClient({ tableNumber }) {
     loadTableHistory();
   }
 
-  useEffect(() => { loadMenu(); }, []);
+  useEffect(() => { loadInitial(); }, [tableKey]);
 
   const grouped = useMemo(() => {
+    const order = ['메인', '세트', '음료'];
     const map = new Map();
     for (const item of menuItems) {
       if (!map.has(item.category)) map.set(item.category, []);
       map.get(item.category).push(item);
     }
-    return Array.from(map.entries());
+    return Array.from(map.entries()).sort(([a], [b]) => {
+      const ai = order.indexOf(a);
+      const bi = order.indexOf(b);
+      if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      return a.localeCompare(b, 'ko');
+    });
   }, [menuItems]);
 
   const cartLines = useMemo(() => {
@@ -161,7 +182,7 @@ export default function OrderClient({ tableNumber }) {
 
   const totalQuantity = cartLines.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = cartLines.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const canOrder = Boolean(settings?.is_open) && cartLines.length > 0 && !submitting;
+  const canOrder = Boolean(settings?.is_open) && Boolean(tableNumber) && cartLines.length > 0 && !submitting;
 
   function updateQty(id, nextQty) {
     setCart((prev) => {
@@ -185,11 +206,12 @@ export default function OrderClient({ tableNumber }) {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tableNumber, items })
+        body: JSON.stringify({ tableKey, items })
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '주문에 실패했습니다.');
       setCreatedOrder(json.order);
+      if (json.table) setTable(json.table);
       setCart({});
       setReviewOpen(false);
       setHistoryData(null);
@@ -202,12 +224,21 @@ export default function OrderClient({ tableNumber }) {
     }
   }
 
-  if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 10) {
+  if (loading) {
+    return (
+      <main className="container narrow guest-page">
+        <div className="card skeleton-card">주문 화면을 불러오는 중입니다.</div>
+      </main>
+    );
+  }
+
+  if (!tableNumber) {
     return (
       <main className="container narrow">
         <div className="card">
           <h1>잘못된 테이블 QR입니다.</h1>
-          <p className="muted">테이블 번호는 1~10번만 사용할 수 있습니다.</p>
+          <p className="muted">등록되지 않은 테이블 주소입니다. 테이블에 부착된 QR을 다시 스캔하거나 직원을 불러주세요.</p>
+          {error && <div className="notice error" role="alert">{error}</div>}
         </div>
       </main>
     );
@@ -216,7 +247,8 @@ export default function OrderClient({ tableNumber }) {
   if (createdOrder) {
     return (
       <main className="container narrow guest-page">
-        <section className="card order-success stack">
+        <section className="card order-success stack order-success-v6">
+          <img className="success-bear" src={successImage} alt="주문 완료 안내 이미지" />
           <div>
             <span className="badge received">주문접수</span>
             <h1 className="huge" style={{ margin: '12px 0 8px' }}>주문 완료</h1>
@@ -270,17 +302,27 @@ export default function OrderClient({ tableNumber }) {
 
   return (
     <main className="container narrow guest-page">
-      <section className="guest-hero guest-hero-v4">
+      <section
+        className="guest-hero guest-hero-v6"
+        style={settings?.guest_hero_image_url ? { backgroundImage: `linear-gradient(135deg, rgba(255,247,251,.88), rgba(238,246,255,.74)), url(${settings.guest_hero_image_url})` } : undefined}
+      >
         <div className="hero-copy">
           <div className="eyebrow hero-eyebrow">Festival Table Order</div>
           <h1>{tableNumber}번 테이블</h1>
-          <p>원하는 메뉴를 담고 주문을 접수하세요. 추가 주문과 미결제 금액은 주문내역에서 한 번에 확인할 수 있습니다.</p>
+          <p className="hero-title-line">{settings?.guest_hero_title || '축제 테이블 주문'}</p>
+          <p>{settings?.guest_hero_subtitle || '메뉴를 담고 주문을 접수하세요. 추가 주문과 미결제 금액은 주문내역에서 한 번에 확인할 수 있습니다.'}</p>
           <div className="hero-meta-row">
             <span>대기 약 {settings?.wait_time_minutes ?? '-'}분</span>
             <span>직원 결제확인</span>
+            <span>주문내역 확인 가능</span>
           </div>
         </div>
-        <div className="hero-side">
+        <div className="hero-visual-panel">
+          {tableHeroImage ? (
+            <img className="hero-character" src={tableHeroImage} alt={`${tableNumber}번 테이블 안내 이미지`} />
+          ) : (
+            <div className="table-visual-fallback"><strong>{tableNumber}</strong><span>TABLE</span></div>
+          )}
           <div className={`service-chip ${settings?.is_open ? 'open' : 'closed'}`}>
             {settings?.is_open ? '주문 가능' : '주문 중지'}
           </div>
@@ -288,7 +330,6 @@ export default function OrderClient({ tableNumber }) {
         </div>
       </section>
 
-      {loading && <div className="card skeleton-card">메뉴를 불러오는 중입니다.</div>}
       {error && <div className="notice error" role="alert">{error}</div>}
       {settings && !settings.is_open && (
         <div className="notice error">현재 주문 접수가 일시중지되어 있습니다. 직원을 불러주세요.</div>
@@ -318,7 +359,10 @@ export default function OrderClient({ tableNumber }) {
               {items.map((item) => {
                 const qty = cart[item.id] || 0;
                 return (
-                  <div className={`menu-item ${item.is_sold_out ? 'soldout' : ''}`} key={item.id}>
+                  <div className={`menu-item ${item.is_sold_out ? 'soldout' : ''} ${item.image_url ? 'with-image' : ''}`} key={item.id}>
+                    {item.image_url && (
+                      <img className="menu-thumb" src={item.image_url} alt={`${item.name} 이미지`} loading="lazy" />
+                    )}
                     <div>
                       <div className="menu-title">
                         <strong>{item.name}</strong>

@@ -34,6 +34,14 @@ export async function PATCH(request) {
     }
     if (body.payment_message !== undefined) patch.payment_message = String(body.payment_message || '').slice(0, 1000);
     if (body.notice !== undefined) patch.notice = String(body.notice || '').slice(0, 1000);
+    if (body.guest_hero_image_url !== undefined) patch.guest_hero_image_url = String(body.guest_hero_image_url || '').trim().slice(0, 1000);
+    if (body.admin_hero_image_url !== undefined) patch.admin_hero_image_url = String(body.admin_hero_image_url || '').trim().slice(0, 1000);
+    if (body.guest_character_image_url !== undefined) patch.guest_character_image_url = String(body.guest_character_image_url || '').trim().slice(0, 1000);
+    if (body.order_success_image_url !== undefined) patch.order_success_image_url = String(body.order_success_image_url || '').trim().slice(0, 1000);
+    if (body.guest_hero_title !== undefined) patch.guest_hero_title = String(body.guest_hero_title || '').trim().slice(0, 120);
+    if (body.guest_hero_subtitle !== undefined) patch.guest_hero_subtitle = String(body.guest_hero_subtitle || '').trim().slice(0, 400);
+    if (body.admin_hero_title !== undefined) patch.admin_hero_title = String(body.admin_hero_title || '').trim().slice(0, 120);
+    if (body.admin_hero_subtitle !== undefined) patch.admin_hero_subtitle = String(body.admin_hero_subtitle || '').trim().slice(0, 400);
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase

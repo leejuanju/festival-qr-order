@@ -1,45 +1,36 @@
-# Festival QR Order System v4
+# 축제 QR 주문 시스템
 
-단기 축제 음식 부스를 위한 QR 주문 웹앱입니다.
+테이블별 QR 주문, 홀 결제확인, 주방 주문표, 관리자 메뉴·대기열 관리를 위한 Next.js + Supabase 프로젝트입니다.
 
-## Main screens
+## 주요 화면
 
 - `/` 운영자 홈
-- `/order/1` ~ `/order/10` 손님용 테이블 주문 화면
+- `/order/[public_code]` 손님용 테이블 주문 화면
 - `/hall` 홀 / 결제확인 화면
 - `/kitchen` 주방 주문표
 - `/admin` 관리자 화면
-- `/admin/qr` 테이블 QR 출력
+- `/admin/qr` 1~22번 테이블 QR 출력 화면
 
-## v4 workflow
+## v6 핵심사항
 
-- 손님은 테이블 QR로 주문합니다.
-- 주문은 홀 화면과 주방 화면에 동시에 표시됩니다.
-- 주방은 결제 여부와 무관하게 `주문접수 → 조리중 → 준비완료`만 처리합니다.
-- 홀은 개별 주문 결제확인 또는 테이블 세션의 미결제 주문 전체 결제확인을 할 수 있습니다.
-- 손님은 주문 완료 화면의 `주문내역 보기`에서 현재 테이블 세션의 주문별 결제상태와 남은 결제금액을 확인할 수 있습니다.
-- `테이블 비우기`는 현재 세션을 종료하고 다음 손님을 새 세션으로 받습니다. 기록은 삭제되지 않습니다.
+- 테이블은 22개입니다.
+- 손님 QR은 숫자 URL이 아니라 `booth_tables.public_code` 기반 URL입니다.
+- 기존 `/order/1` 같은 숫자 URL fallback은 테스트용으로만 남겨두었습니다.
+- QR은 반드시 배포 주소의 `/admin/qr`에서 출력하세요.
+- 주방 화면은 단순 리스트형으로 구성되어 확인/제공완료만 처리합니다.
 
-## Setup
+## 환경변수
 
-Create `.env.local` in the project root:
+`.env.local` 파일은 프로젝트 루트에 직접 생성합니다. GitHub에 올리면 안 됩니다.
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SECRET_KEY
-ADMIN_PIN=2468
-KITCHEN_PIN=1357
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-secret-key
+ADMIN_PIN=1538
+KITCHEN_PIN=1539
 ```
 
-Install and run:
+## Supabase 업데이트
 
-```powershell
-npm install
-npm run dev
-```
-
-Build:
-
-```powershell
-npm run build
-```
+기존 v5 DB에는 `supabase/v6_migration.sql`만 실행합니다.
+`schema.sql`은 새 Supabase 프로젝트를 처음부터 만들 때만 사용합니다.

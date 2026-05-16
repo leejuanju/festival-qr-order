@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { resolveTableKey } from '@/lib/tables';
 
 function normalizeQuantity(value) {
   const n = Number(value);
@@ -11,12 +12,10 @@ export async function POST(request) {
   try {
     const supabase = getSupabaseAdmin();
     const body = await request.json();
-    const tableNumber = Number(body.tableNumber);
+    const tableKey = body.tableKey ?? body.tableNumber;
     const rawItems = Array.isArray(body.items) ? body.items : [];
-
-    if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 10) {
-      return NextResponse.json({ error: '테이블 번호가 올바르지 않습니다.' }, { status: 400 });
-    }
+    const table = await resolveTableKey(supabase, tableKey);
+    const tableNumber = Number(table.number);
 
     const { data: settings, error: settingsError } = await supabase
       .from('settings')
@@ -45,7 +44,7 @@ export async function POST(request) {
     const ids = Array.from(requestedMap.keys());
     const { data: menuRows, error: menuError } = await supabase
       .from('menu_items')
-      .select('id,name,price,is_visible,is_sold_out')
+      .select('id,name,price,image_url,is_visible,is_sold_out')
       .in('id', ids);
 
     if (menuError) throw menuError;
@@ -68,7 +67,8 @@ export async function POST(request) {
         name: row.name,
         price: row.price,
         quantity,
-        subtotal
+        subtotal,
+        image_url: row.image_url || ''
       });
     }
 
@@ -80,7 +80,7 @@ export async function POST(request) {
 
     if (orderError) throw orderError;
 
-    return NextResponse.json({ order });
+    return NextResponse.json({ order, table });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

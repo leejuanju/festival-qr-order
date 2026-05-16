@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/auth';
 
 function normalizeMenuPatch(body, { requireName = false } = {}) {
   const patch = {};
-  const allowed = ['name', 'description', 'category', 'price', 'is_visible', 'is_sold_out', 'sort_order'];
+  const allowed = ['name', 'description', 'category', 'price', 'image_url', 'is_visible', 'is_sold_out', 'sort_order'];
   for (const key of allowed) {
     if (body[key] !== undefined) patch[key] = body[key];
   }
@@ -16,6 +16,7 @@ function normalizeMenuPatch(body, { requireName = false } = {}) {
   }
 
   if (patch.description !== undefined) patch.description = String(patch.description || '').trim().slice(0, 300);
+  if (patch.image_url !== undefined) patch.image_url = String(patch.image_url || '').trim().slice(0, 1000);
   if (patch.category !== undefined) patch.category = String(patch.category || '메뉴').trim().slice(0, 50) || '메뉴';
   if (patch.price !== undefined) {
     const price = Number(patch.price);
@@ -59,6 +60,7 @@ export async function POST(request) {
       category: body.category || '메뉴',
       price: body.price,
       sort_order: body.sort_order ?? 100,
+      image_url: body.image_url || '',
       is_visible: body.is_visible ?? true,
       is_sold_out: body.is_sold_out ?? false
     }, { requireName: true });

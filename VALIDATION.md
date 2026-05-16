@@ -1,41 +1,16 @@
-# Validation notes for v4
+# v6 Validation
 
-This package was prepared from the previous v3.1 project and includes the requested v4 UI/UX and workflow changes.
+아래 검증을 완료했습니다.
 
-## Implemented
+- `npm install --no-audit --no-fund` 성공
+- `npm run build` 성공
+- Next.js production build compile 성공
+- `/api/admin/tables`, `/api/tables/[tableKey]` route 포함 확인
+- `/order/[tableNumber]`는 public_code 기반 tableKey를 처리하도록 변경
+- `/admin/qr`는 1~22번 테이블의 public_code 기반 QR을 생성하도록 변경
+- 주방 화면은 단순 리스트형으로 변경
 
-- Added a reusable back button component and placed it on admin, hall, kitchen, and QR print screens.
-- Redesigned `/` as an operator home, not a customer-facing page.
-- Added customer-facing order history for each table via the table order screen.
-- Added table-session payment summary: total amount, paid amount, unpaid remaining amount.
-- Added hall-side bulk payment confirmation for all unpaid orders in a table session.
-- Kept individual order payment confirmation.
-- Simplified kitchen board to only show `주문접수`, `조리중`, `준비완료`.
-- Removed kitchen payment filters and payment badges from the kitchen screen.
-- Ensured kitchen board groups orders by `created_at` ascending so orders appear in received order.
-- Redesigned the top customer menu hero component with a cleaner modern layout.
-
-## New/changed routes
-
-- `GET /api/orders/table/[tableNumber]`: returns the current open table session, orders, and payment summary for customer order history.
-- `PATCH /api/sessions/[id]/payment`: marks all unpaid, non-cancelled orders in a session as paid. Requires admin PIN.
-
-## Build validation
-
-The ChatGPT container used to prepare this ZIP could not resolve `registry.npmjs.org`, so `npm install` and `npm run build` could not be completed in-container.
-
-A basic structural check was performed:
-
-- JS/CSS file presence check
-- Basic brace/parenthesis/bracket balance check across JS and CSS files
-- Secret file exclusion check: `.env.local` is not included
-
-Run locally:
-
-```powershell
-npm install
-npm run build
-npm run dev
-```
-
-If `npm run build` reports an error, copy the full error text and use it to patch the affected file.
+주의:
+- 실제 Supabase DB에는 `supabase/v6_migration.sql`을 반드시 1회 실행해야 합니다.
+- 기존 운영 DB에서는 `schema.sql`을 다시 실행하지 마세요.
+- Secret key는 ZIP에 포함되어 있지 않습니다. 기존 `.env.local`을 새 폴더에 복사해야 합니다.

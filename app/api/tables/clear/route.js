@@ -11,7 +11,7 @@ export async function POST(request) {
     const tableNumber = Number(body.tableNumber);
     const force = Boolean(body.force);
 
-    if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 10) {
+    if (!Number.isInteger(tableNumber) || tableNumber < 1 || tableNumber > 22) {
       return NextResponse.json({ error: '테이블 번호가 올바르지 않습니다.' }, { status: 400 });
     }
 

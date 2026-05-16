@@ -21,7 +21,7 @@ export default function HomePage() {
           <span className="ops-icon">KDS</span>
           <div>
             <h2>주방 주문표</h2>
-            <p className="muted">주문접수, 조리중, 준비완료만 관리.</p>
+            <p className="muted">접수된 주문을 한 줄 리스트로 보고 확인/제공완료 처리.</p>
           </div>
         </a>
         <a className="card ops-link" href="/admin">
@@ -35,17 +35,17 @@ export default function HomePage() {
           <span className="ops-icon">QR</span>
           <div>
             <h2>테이블 QR 출력</h2>
-            <p className="muted">배포 주소 기준 1~10번 테이블 QR 생성.</p>
+            <p className="muted">배포 주소 기준 1~22번 테이블 비공개 QR 생성.</p>
           </div>
         </a>
       </section>
 
       <section className="notice info" style={{ marginTop: 16 }}>
-        손님에게 공유할 주소는 <strong>/order/1</strong> ~ <strong>/order/10</strong>입니다. 운영자 화면 주소와 PIN은 담당자에게만 공유하세요.
+        손님에게 직접 공유할 주소는 숫자 URL이 아니라 <strong>/admin/qr</strong>에서 출력한 테이블별 QR입니다. 운영자 화면 주소와 PIN은 담당자에게만 공유하세요.
       </section>
 
       <p className="footer-note">
-        현장 QR은 반드시 Vercel 배포 주소의 /admin/qr 화면에서 출력하세요. localhost QR은 손님 휴대폰에서 동작하지 않습니다.
+        현장 QR은 반드시 Netlify 배포 주소의 /admin/qr 화면에서 출력하세요. localhost QR은 손님 휴대폰에서 동작하지 않습니다.
       </p>
     </main>
   );

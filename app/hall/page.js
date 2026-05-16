@@ -160,6 +160,15 @@ export default function HallPage() {
     }
   }
 
+  function scrollToTable(tableNumber) {
+    const target = document.getElementById(`session-table-${tableNumber}`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.classList.add('pulse-focus');
+      window.setTimeout(() => target.classList.remove('pulse-focus'), 1100);
+    }
+  }
+
   const tableSummary = useMemo(() => {
     const map = new Map();
     for (const session of sessions) map.set(session.table_number, session);
@@ -253,7 +262,15 @@ export default function HallPage() {
         </div>
         <div className="table-list" style={{ marginTop: 12 }}>
           {tableSummary.map((table) => (
-            <div className={`table-pill ${table.session ? 'occupied' : ''} ${table.className}`} key={table.number}>
+            <div
+              className={`table-pill ${table.session ? 'occupied clickable' : ''} ${table.className}`}
+              key={table.number}
+              role={table.session ? 'button' : undefined}
+              tabIndex={table.session ? 0 : undefined}
+              title={table.session ? `${table.number}번 테이블 주문으로 이동` : `${table.number}번 테이블 비어있음`}
+              onClick={() => table.session && scrollToTable(table.number)}
+              onKeyDown={(event) => { if (table.session && (event.key === 'Enter' || event.key === ' ')) scrollToTable(table.number); }}
+            >
               <strong>{table.number}번</strong>
               {table.session ? (
                 <>
@@ -261,9 +278,9 @@ export default function HallPage() {
                   <div className="small muted">미결제 {table.session.unpaidCount}건 · {formatWon(table.session.unpaidAmount)}</div>
                   <div className="small muted">미제공 {table.session.unservedCount}건</div>
                   {table.session.clearable ? (
-                    <button className="btn ok full" style={{ marginTop: 8 }} onClick={() => clearTable(table.number)}>비우기</button>
+                    <button className="btn ok full" style={{ marginTop: 8 }} onClick={(event) => { event.stopPropagation(); clearTable(table.number); }}>비우기</button>
                   ) : table.session.unpaidCount > 0 ? (
-                    <button className="btn ok full" style={{ marginTop: 8 }} onClick={() => markSessionPaid(table.session)}>미결제 전체확인</button>
+                    <button className="btn ok full" style={{ marginTop: 8 }} onClick={(event) => { event.stopPropagation(); markSessionPaid(table.session); }}>미결제 전체확인</button>
                   ) : (
                     <div className="tiny muted" style={{ marginTop: 8 }}>처리 필요</div>
                   )}
@@ -290,7 +307,7 @@ export default function HallPage() {
       <div className="grid" style={{ marginTop: 14 }}>
         {visibleSessions.length === 0 && <div className="card">현재 조건에 맞는 테이블 세션이 없습니다.</div>}
         {visibleSessions.map((session) => (
-          <section className="card session-card" key={session.id}>
+          <section className="card session-card" id={`session-table-${session.table_number}`} key={session.id}>
             <div className="row-between">
               <div>
                 <div className="eyebrow">Table Session</div>
