@@ -29,6 +29,8 @@ export default function PublicWaitlistPage() {
   const [lastLoadedAt, setLastLoadedAt] = useState(null);
   const audioRef = useRef(null);
   const previousStatusRef = useRef('');
+  const alertTimerRef = useRef(null);
+  const alertedQueueRef = useRef('');
 
   async function load() {
     setError('');
@@ -102,21 +104,41 @@ export default function PublicWaitlistPage() {
     }
     beep();
     if ('vibrate' in navigator) navigator.vibrate(80);
+    if (watchedEntry?.status === 'called') {
+      previousStatusRef.current = '';
+      triggerCalledAlert(watchedEntry);
+    }
   }
 
   function triggerCalledAlert(entry) {
-    if ('vibrate' in navigator) navigator.vibrate([320, 140, 320, 140, 520]);
-    beep();
-    if (notificationReady && 'Notification' in window) {
-      try {
-        new Notification(`${entry.queue_no}번 대기 호출`, {
-          body: '직원 안내에 따라 입장 대기해주세요.',
-          tag: `waitlist-called-${entry.queue_no}`
-        });
-      } catch (_) {
-        // 일부 모바일 브라우저는 Notification 생성이 제한됩니다.
+    const queueKey = String(entry.queue_no);
+    if (alertedQueueRef.current === queueKey) return;
+    alertedQueueRef.current = queueKey;
+    if (alertTimerRef.current) window.clearInterval(alertTimerRef.current);
+
+    let count = 0;
+    const runAlert = () => {
+      count += 1;
+      if ('vibrate' in navigator) navigator.vibrate([260, 110, 260, 110, 420]);
+      beep();
+      if (notificationReady && 'Notification' in window) {
+        try {
+          new Notification(`${entry.queue_no}번 대기 호출`, {
+            body: `총 10회 중 ${count}번째 알림입니다. 직원 안내에 따라 입장 대기해주세요.`,
+            tag: `waitlist-called-${entry.queue_no}-${count}`
+          });
+        } catch (_) {
+          // 일부 모바일 브라우저는 Notification 생성이 제한됩니다.
+        }
       }
-    }
+      if (count >= 10 && alertTimerRef.current) {
+        window.clearInterval(alertTimerRef.current);
+        alertTimerRef.current = null;
+      }
+    };
+
+    runAlert();
+    alertTimerRef.current = window.setInterval(runAlert, 1200);
   }
 
   useEffect(() => {
@@ -130,6 +152,13 @@ export default function PublicWaitlistPage() {
     }
     previousStatusRef.current = watchedEntry.status;
   }, [watchedEntry?.status, watchedEntry?.queue_no, alertsEnabled]);
+
+
+  useEffect(() => {
+    return () => {
+      if (alertTimerRef.current) window.clearInterval(alertTimerRef.current);
+    };
+  }, []);
 
   function saveWatch(event) {
     event.preventDefault();
@@ -149,10 +178,13 @@ export default function PublicWaitlistPage() {
   return (
     <main className="container narrow waitlist-page">
       <section className="waitlist-guest-hero">
-        <div>
+        <div className="waitlist-hero-copy">
           <div className="eyebrow">Waiting List</div>
-          <h1>대기번호 현황</h1>
-          <p>직원에게 받은 대기번호를 입력하면 호출 상태를 확인할 수 있습니다. 화면을 켜두면 호출 시 진동/알림을 시도합니다.</p>
+          <div className="waitlist-title-row">
+            <h1>대기번호 현황</h1>
+            <img className="waitlist-hero-bear" src="/assets/waitlist-bear.png" alt="대기번호 안내 곰 이미지" />
+          </div>
+          <p>직원에게 받은 대기번호를 입력하면 호출 상태를 확인할 수 있습니다. 화면을 켜두고 알림을 활성화하면 본인 번호 호출 시 최대 10회 진동/알림을 시도합니다.</p>
         </div>
         <div className="row waitlist-guest-actions">
           <BackButton />
@@ -162,7 +194,7 @@ export default function PublicWaitlistPage() {
 
       {error && <div className="notice error" role="alert">{error}</div>}
 
-      <section className="stat-grid waitlist-public-stats">
+      <section className="stat-grid waitlist-public-stats compact-3">
         <div className="stat-card urgent"><span>현재 대기</span><strong>{summary.active || 0}</strong></div>
         <div className="stat-card"><span>호출됨</span><strong>{summary.called || 0}</strong></div>
         <div className="stat-card"><span>대기중</span><strong>{summary.waiting || 0}</strong></div>

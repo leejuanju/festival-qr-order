@@ -240,13 +240,13 @@ export default function HallPage() {
         </div>
       </div>
 
-      <section className="stat-grid">
+      <section className="stat-grid hall-stat-grid compact-3">
         <div className="stat-card"><span>이용중 테이블</span><strong>{stats.openTables}</strong></div>
         <div className="stat-card urgent"><span>미결제 주문</span><strong>{stats.unpaidOrders}</strong></div>
+        <div className="stat-card"><span>미제공 주문</span><strong>{stats.unservedOrders}</strong></div>
         <div className="stat-card urgent"><span>남은 결제금액</span><strong>{formatWon(stats.unpaidAmount)}</strong></div>
         <div className="stat-card"><span>미제공 주문</span><strong>{stats.unservedOrders}</strong></div>
         <div className="stat-card"><span>준비완료</span><strong>{stats.readyOrders}</strong></div>
-        <div className="stat-card wide"><span>열린 세션 총액</span><strong>{formatWon(stats.liveAmount)}</strong></div>
       </section>
 
       {error && <div className="notice error" role="alert">{error}</div>}
@@ -260,7 +260,7 @@ export default function HallPage() {
             <p className="muted small">미결제 0 · 미제공 0이면 테이블 비우기가 가능합니다. 새 손님 착석 전 반드시 비우기를 누르세요.</p>
           </div>
         </div>
-        <div className="table-list" style={{ marginTop: 12 }}>
+        <div className="table-list hall-table-list" style={{ marginTop: 12 }}>
           {tableSummary.map((table) => (
             <div
               className={`table-pill ${table.session ? 'occupied clickable' : ''} ${table.className}`}
@@ -323,7 +323,7 @@ export default function HallPage() {
               </div>
             </div>
 
-            <section className="history-summary-grid hall-summary-grid" style={{ marginTop: 12 }}>
+            <section className="history-summary-grid hall-summary-grid compact-3" style={{ marginTop: 12 }}>
               <div className="history-summary-card"><span>총 주문금액</span><strong>{formatWon(session.totalAmount)}</strong></div>
               <div className="history-summary-card paid"><span>결제확인</span><strong>{formatWon(session.paidAmount)}</strong></div>
               <div className="history-summary-card unpaid"><span>남은 결제</span><strong>{formatWon(session.unpaidAmount)}</strong></div>

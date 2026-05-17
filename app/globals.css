@@ -623,3 +623,56 @@ button { -webkit-tap-highlight-color: transparent; }
   .hero-visual-panel::before { width: min(150px, 42vw); height: min(150px, 42vw); }
   .hero-character { width: min(116px, 34vw); max-height: 126px; transform: translateY(0) rotate(-1deg); }
 }
+
+/* v6.3 mobile density refinements, public waitlist alerts, and separated table image admin */
+.stat-card.paid { background: #f0fdf4; border-color: #bbf7d0; }
+.compact-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.hall-stat-grid { margin-top: 2px; }
+.hall-stat-grid .stat-card,
+.admin-stat-grid .stat-card,
+.waitlist-public-stats .stat-card { padding: 12px 10px; min-width: 0; }
+.hall-stat-grid .stat-card span,
+.admin-stat-grid .stat-card span,
+.waitlist-public-stats .stat-card span { font-size: 11px; white-space: nowrap; }
+.hall-stat-grid .stat-card strong,
+.admin-stat-grid .stat-card strong,
+.waitlist-public-stats .stat-card strong { font-size: clamp(18px, 4.6vw, 24px); word-break: keep-all; }
+.hall-table-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hall-table-list .table-pill { min-height: 86px; padding: 11px; }
+.hall-table-list .table-pill strong { font-size: 17px; }
+.hall-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.hall-summary-grid .history-summary-card { padding: 12px 9px; }
+.hall-summary-grid .history-summary-card span { font-size: 11px; white-space: nowrap; }
+.hall-summary-grid .history-summary-card strong { font-size: clamp(17px, 4.8vw, 22px); }
+.waitlist-title-row { display: flex; align-items: center; gap: 12px; }
+.waitlist-title-row h1 { margin-right: auto; }
+.waitlist-hero-bear { width: min(86px, 22vw); height: min(86px, 22vw); object-fit: contain; filter: drop-shadow(0 12px 24px rgba(15,23,42,.12)); flex: 0 0 auto; }
+.waitlist-hero-copy { flex: 1 1 auto; min-width: 0; }
+.admin-table-page-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.table-image-preview.compact { height: 118px; }
+.admin-table-link-notice a { color: var(--blue); }
+@media (max-width: 900px) {
+  .admin-table-page-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 720px) {
+  .waitlist-public-stats.compact-3,
+  .hall-stat-grid.compact-3,
+  .admin-stat-grid.compact-3,
+  .hall-summary-grid.compact-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 7px; }
+  .waitlist-guest-hero { gap: 10px; }
+  .waitlist-title-row { width: 100%; align-items: flex-start; }
+  .waitlist-hero-bear { width: min(72px, 20vw); height: min(72px, 20vw); }
+  .hall-table-list { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px; }
+  .hall-table-list .table-pill { border-radius: 14px; min-height: 74px; padding: 10px; }
+  .hall-table-list .table-pill .small { font-size: 11px; }
+}
+@media (max-width: 520px) {
+  .compact-3 .stat-card { padding: 10px 7px; border-radius: 14px; }
+  .compact-3 .stat-card span { font-size: 10px; letter-spacing: -0.02em; }
+  .compact-3 .stat-card strong { font-size: clamp(15px, 4.4vw, 20px); }
+  .hall-summary-grid .history-summary-card { padding: 10px 7px; border-radius: 14px; }
+  .hall-summary-grid .history-summary-card strong { font-size: clamp(14px, 4.3vw, 19px); }
+  .public-waitlist-card { grid-template-columns: 38px 70px 1fr; gap: 8px; padding: 12px; }
+  .public-wait-no { font-size: 22px; }
+  .admin-table-page-grid { grid-template-columns: 1fr; }
+}

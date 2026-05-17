@@ -159,7 +159,7 @@ export default function AdminPage() {
   const [authMessage, setAuthMessage] = useState('');
   const [settings, setSettings] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
-  const [tableConfigs, setTableConfigs] = useState([]);
+  const [sales, setSales] = useState({ paidAmount: 0, paidCount: 0, totalAmount: 0, unpaidAmount: 0 });
   const [waitlistEntries, setWaitlistEntries] = useState([]);
   const [waitlistSummary, setWaitlistSummary] = useState({ waiting: 0, called: 0, active: 0 });
   const [waitlistDraft, setWaitlistDraft] = useState({ name: '', party_size: 2, memo: '' });
@@ -174,7 +174,7 @@ export default function AdminPage() {
     setAuthMessage(nextMessage);
     setSettings(null);
     setMenuItems([]);
-    setTableConfigs([]);
+    setSales({ paidAmount: 0, paidCount: 0, totalAmount: 0, unpaidAmount: 0 });
     setWaitlistEntries([]);
   }
 
@@ -206,17 +206,17 @@ export default function AdminPage() {
     if (!pin) return;
     setError('');
     try {
-      const [settingsJson, menuJson, waitlistJson, tablesJson] = await Promise.all([
+      const [settingsJson, menuJson, waitlistJson, salesJson] = await Promise.all([
         api('/api/admin/settings'),
         api('/api/admin/menu'),
         api(`/api/admin/waitlist?includeDone=${includeDoneWaitlist ? 'true' : 'false'}`),
-        api('/api/admin/tables')
+        api('/api/admin/sales')
       ]);
       setSettings(settingsJson.settings);
       setMenuItems(menuJson.menuItems || []);
       setWaitlistEntries(waitlistJson.entries || []);
       setWaitlistSummary(waitlistJson.summary || { waiting: 0, called: 0, active: 0 });
-      setTableConfigs(tablesJson.tables || []);
+      setSales(salesJson.sales || { paidAmount: 0, paidCount: 0, totalAmount: 0, unpaidAmount: 0 });
     } catch (err) {
       if (err.message !== 'PIN이 올바르지 않습니다.') setError(err.message);
     }
@@ -267,24 +267,6 @@ export default function AdminPage() {
         body: JSON.stringify({ id, ...patch })
       });
       setMessage('메뉴를 저장했습니다.');
-      await load();
-    } catch (err) {
-      if (err.message !== 'PIN이 올바르지 않습니다.') setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function patchTableConfig(number, patch) {
-    setError('');
-    setMessage('');
-    setBusy(true);
-    try {
-      await api('/api/admin/tables', {
-        method: 'PATCH',
-        body: JSON.stringify({ number, ...patch })
-      });
-      setMessage(`${number}번 테이블 이미지를 저장했습니다.`);
       await load();
     } catch (err) {
       if (err.message !== 'PIN이 올바르지 않습니다.') setError(err.message);
@@ -372,6 +354,7 @@ export default function AdminPage() {
         <div className="row admin-hero-actions">
           <BackButton />
           <a className="btn" href="/admin/qr">QR 출력</a>
+          <a className="btn" href="/admin/tables">테이블 이미지</a>
           <a className="btn" href="/waitlist" target="_blank" rel="noreferrer">손님 대기화면</a>
           <a className="btn" href="/hall">홀 화면</a>
           <a className="btn" href="/kitchen">주방 화면</a>
@@ -380,13 +363,13 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <section className="stat-grid">
+      <section className="stat-grid admin-stat-grid compact-3">
         <div className={`stat-card ${settings?.is_open ? '' : 'urgent'}`}><span>주문 상태</span><strong>{settings?.is_open ? 'ON' : 'OFF'}</strong></div>
         <div className="stat-card"><span>대기시간</span><strong>{settings?.wait_time_minutes ?? '-'}분</strong></div>
+        <div className="stat-card paid"><span>팔린 총액</span><strong>{formatWon(sales.paidAmount || 0)}</strong></div>
         <div className="stat-card"><span>판매 가능</span><strong>{activeCount}</strong></div>
         <div className="stat-card"><span>품절 메뉴</span><strong>{soldOutCount}</strong></div>
         <div className="stat-card"><span>대기중</span><strong>{waitlistSummary.active || 0}</strong></div>
-        <div className="stat-card wide"><span>노출 메뉴</span><strong>{visibleCount}</strong></div>
       </section>
 
       {error && <div className="notice error" role="alert">{error}</div>}
@@ -546,32 +529,8 @@ export default function AdminPage() {
         </section>
       )}
 
-      <section className="card stack" style={{ marginTop: 14 }}>
-        <div className="row-between">
-          <div>
-            <h2>테이블 이미지 / 비공개 QR 코드</h2>
-            <p className="muted small">각 테이블 메뉴판 상단에 들어갈 이미지를 따로 지정할 수 있습니다. URL은 /admin/qr에서 출력되는 비공개 코드 기반 QR에 연결됩니다.</p>
-          </div>
-          <a className="btn" href="/admin/qr">QR 출력 화면</a>
-        </div>
-        <div className="table-image-grid">
-          {tableConfigs.map((table) => (
-            <article className="table-image-card" key={table.number}>
-              <div className="row-between">
-                <strong>{table.number}번 테이블</strong>
-                <span className="badge dark">{table.public_code}</span>
-              </div>
-              {table.hero_image_url ? <img className="table-image-preview" src={table.hero_image_url} alt={`${table.number}번 테이블 이미지`} /> : <div className="table-image-empty">이미지 없음</div>}
-              <input
-                className="input"
-                value={table.hero_image_url || ''}
-                onChange={(e) => setTableConfigs((prev) => prev.map((item) => item.number === table.number ? { ...item, hero_image_url: e.target.value } : item))}
-                placeholder="테이블별 상단 이미지 URL"
-              />
-              <button className="btn primary full" disabled={busy} onClick={() => patchTableConfig(table.number, { hero_image_url: table.hero_image_url || '' })}>저장</button>
-            </article>
-          ))}
-        </div>
+      <section className="notice info admin-table-link-notice" style={{ marginTop: 14 }}>
+        테이블별 상단 이미지는 별도 화면에서 관리합니다. <a href="/admin/tables"><strong>테이블 이미지 관리로 이동</strong></a>
       </section>
 
       <section className="grid" style={{ marginTop: 14 }}>

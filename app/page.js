@@ -38,6 +38,14 @@ export default function HomePage() {
             <p className="muted">대기번호 현황, 호출번호, 내 번호 알림 확인.</p>
           </div>
         </a>
+
+        <a className="card ops-link" href="/admin/tables">
+          <span className="ops-icon">IMG</span>
+          <div>
+            <h2>테이블 이미지 관리</h2>
+            <p className="muted">1~22번 테이블 상단 곰 이미지 URL을 별도 관리.</p>
+          </div>
+        </a>
         <a className="card ops-link" href="/admin/qr">
           <span className="ops-icon">QR</span>
           <div>
