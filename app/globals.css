@@ -676,3 +676,52 @@ button { -webkit-tap-highlight-color: transparent; }
   .public-wait-no { font-size: 22px; }
   .admin-table-page-grid { grid-template-columns: 1fr; }
 }
+
+/* waitlist hero fine-tuning */
+.waitlist-guest-hero h1 {
+  font-size: clamp(30px, 7vw, 52px);
+  letter-spacing: -0.075em;
+  line-height: 1;
+  margin: 8px 0 6px;
+}
+
+.waitlist-title-row {
+  align-items: center;
+  gap: 14px;
+}
+
+.waitlist-hero-bear {
+  width: min(118px, 30vw);
+  height: min(118px, 30vw);
+  object-fit: contain;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 720px) {
+  .waitlist-guest-hero h1 {
+    font-size: clamp(28px, 8vw, 40px);
+    letter-spacing: -0.07em;
+  }
+
+  .waitlist-title-row {
+    align-items: center;
+    gap: 10px;
+  }
+
+  .waitlist-hero-bear {
+    width: min(96px, 28vw);
+    height: min(96px, 28vw);
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 420px) {
+  .waitlist-guest-hero h1 {
+    font-size: clamp(26px, 7.6vw, 34px);
+  }
+
+  .waitlist-hero-bear {
+    width: min(88px, 27vw);
+    height: min(88px, 27vw);
+  }
+}
