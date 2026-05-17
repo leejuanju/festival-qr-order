@@ -110,7 +110,7 @@ export default function OrderClient({ tableKey }) {
   const [historyData, setHistoryData] = useState(null);
 
   const tableNumber = table?.number;
-  const tableHeroImage = table?.hero_image_url || settings?.guest_character_image_url || '';
+  const tableHeroImage = table?.hero_image_url || (tableNumber ? `/assets/bear_${tableNumber}_transparent.png` : '') || settings?.guest_character_image_url || '';
   const successImage = settings?.order_success_image_url || DEFAULT_SUCCESS_IMAGE;
 
   async function loadInitial() {
@@ -274,11 +274,17 @@ export default function OrderClient({ tableKey }) {
             </ul>
           </div>
 
-          <div className="card inner-card" style={{ textAlign: 'left' }}>
-            <h2>결제 안내</h2>
-            <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>{settings?.payment_message}</p>
+          <section className="payment-callout" aria-label="결제 안내">
+            <div className="payment-callout-head">
+              <span className="payment-icon">₩</span>
+              <div>
+                <h2>입금 / 결제 정보</h2>
+                <p>결제 후 직원에게 주문번호와 결제 완료 화면을 보여주세요.</p>
+              </div>
+            </div>
+            <div className="payment-message-highlight">{settings?.payment_message}</div>
             <p className="small muted">추가 주문이 있으면 미결제 금액을 모아서 한 번에 결제해도 됩니다.</p>
-          </div>
+          </section>
 
           <div className="grid grid-2 success-actions">
             <button className="btn primary full btn-lg" onClick={() => setCreatedOrder(null)}>추가 주문하기</button>
@@ -335,14 +341,6 @@ export default function OrderClient({ tableKey }) {
         <div className="notice error">현재 주문 접수가 일시중지되어 있습니다. 직원을 불러주세요.</div>
       )}
       {settings?.notice && <div className="notice info">{settings.notice}</div>}
-
-      {settings && (
-        <section className="service-summary">
-          <div><span>예상 대기</span><strong>약 {settings.wait_time_minutes}분</strong></div>
-          <div><span>결제 방식</span><strong>QR/계좌 후 확인</strong></div>
-          <div><span>테이블</span><strong>{tableNumber}번</strong></div>
-        </section>
-      )}
 
       <div className="category-nav" aria-label="메뉴 카테고리">
         {grouped.map(([category]) => <a key={category} href={`#cat-${category}`}>{category}</a>)}

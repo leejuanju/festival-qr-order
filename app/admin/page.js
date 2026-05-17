@@ -372,6 +372,7 @@ export default function AdminPage() {
         <div className="row admin-hero-actions">
           <BackButton />
           <a className="btn" href="/admin/qr">QR 출력</a>
+          <a className="btn" href="/waitlist" target="_blank" rel="noreferrer">손님 대기화면</a>
           <a className="btn" href="/hall">홀 화면</a>
           <a className="btn" href="/kitchen">주방 화면</a>
           <button className="btn" onClick={load}>새로고침</button>
@@ -399,6 +400,7 @@ export default function AdminPage() {
             <p className="muted small">테이블이 없어 기다리는 손님에게 번호를 발급하고 호출/입장완료를 관리합니다.</p>
           </div>
           <div className="row">
+            <a className="btn" href="/waitlist" target="_blank" rel="noreferrer">손님 화면 열기</a>
             <button className="btn" onClick={() => setIncludeDoneWaitlist(!includeDoneWaitlist)}>
               {includeDoneWaitlist ? '완료 숨기기' : '완료 포함'}
             </button>

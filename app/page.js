@@ -31,6 +31,13 @@ export default function HomePage() {
             <p className="muted">운영 ON/OFF, 대기시간, 결제문구, 메뉴 수정.</p>
           </div>
         </a>
+        <a className="card ops-link" href="/waitlist">
+          <span className="ops-icon">WAIT</span>
+          <div>
+            <h2>손님 대기화면</h2>
+            <p className="muted">대기번호 현황, 호출번호, 내 번호 알림 확인.</p>
+          </div>
+        </a>
         <a className="card ops-link" href="/admin/qr">
           <span className="ops-icon">QR</span>
           <div>

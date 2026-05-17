@@ -23,6 +23,12 @@
 
 `.env.local` 파일은 프로젝트 루트에 직접 생성합니다. GitHub에 올리면 안 됩니다.
 
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-secret-key
+ADMIN_PIN=1538
+KITCHEN_PIN=1539
+```
 
 ## Supabase 업데이트
 
