@@ -677,51 +677,42 @@ button { -webkit-tap-highlight-color: transparent; }
   .admin-table-page-grid { grid-template-columns: 1fr; }
 }
 
-/* waitlist hero fine-tuning */
-.waitlist-guest-hero h1 {
-  font-size: clamp(30px, 7vw, 52px);
-  letter-spacing: -0.075em;
-  line-height: 1;
-  margin: 8px 0 6px;
+/* v6.4 hidden menu statistics page */
+.stats-page .topbar { align-items: flex-start; }
+.stats-summary-grid { margin: 14px 0; }
+.stats-card h2 { margin: 0; }
+.stats-search { max-width: 280px; }
+.stats-table-wrap { width: 100%; overflow-x: auto; margin-top: 12px; border: 1px solid var(--line); border-radius: 18px; }
+.stats-table { width: 100%; border-collapse: collapse; min-width: 860px; background: #fff; }
+.stats-table th,
+.stats-table td { padding: 12px 13px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: middle; white-space: nowrap; }
+.stats-table th:first-child,
+.stats-table td:first-child { text-align: left; min-width: 280px; }
+.stats-table th { background: #f8fafc; color: #475569; font-size: 12px; font-weight: 950; letter-spacing: -0.01em; }
+.stats-table tr:last-child td { border-bottom: 0; }
+.stats-table tr.is-empty { opacity: .52; }
+.stats-menu-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.stats-menu-cell img,
+.stats-thumb-placeholder { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 14px; object-fit: cover; background: #f1f5f9; border: 1px solid var(--line); }
+.stats-thumb-placeholder { display: grid; place-items: center; color: var(--muted); font-size: 10px; font-weight: 900; }
+.stats-menu-cell strong { display: block; font-size: 15px; letter-spacing: -0.03em; white-space: normal; }
+.stats-menu-cell span { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+.ok-text { color: var(--ok); }
+.warn-text { color: var(--warning); }
+.stats-segmented { max-width: 100%; overflow-x: auto; }
+@media (max-width: 760px) {
+  .stats-page .topbar { gap: 10px; }
+  .stats-page .topbar .row { width: 100%; }
+  .stats-page .topbar .row .btn { flex: 1 1 auto; }
+  .stats-summary-grid.compact-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .stats-summary-grid .stat-card { padding: 11px 9px; border-radius: 15px; }
+  .stats-summary-grid .stat-card span { font-size: 10px; white-space: nowrap; }
+  .stats-summary-grid .stat-card strong { font-size: clamp(17px, 4.7vw, 24px); }
+  .stats-search { max-width: none; }
 }
-
-.waitlist-title-row {
-  align-items: center;
-  gap: 14px;
-}
-
-.waitlist-hero-bear {
-  width: min(118px, 30vw);
-  height: min(118px, 30vw);
-  object-fit: contain;
-  transform: translateY(-2px);
-}
-
-@media (max-width: 720px) {
-  .waitlist-guest-hero h1 {
-    font-size: clamp(28px, 8vw, 40px);
-    letter-spacing: -0.07em;
-  }
-
-  .waitlist-title-row {
-    align-items: center;
-    gap: 10px;
-  }
-
-  .waitlist-hero-bear {
-    width: min(96px, 28vw);
-    height: min(96px, 28vw);
-    transform: translateY(-1px);
-  }
-}
-
-@media (max-width: 420px) {
-  .waitlist-guest-hero h1 {
-    font-size: clamp(26px, 7.6vw, 34px);
-  }
-
-  .waitlist-hero-bear {
-    width: min(88px, 27vw);
-    height: min(88px, 27vw);
-  }
+@media print {
+  .no-print { display: none !important; }
+  .stats-table-wrap { overflow: visible; border: 0; }
+  .stats-table { min-width: 0; font-size: 11px; }
+  .stats-table th, .stats-table td { padding: 7px; }
 }
