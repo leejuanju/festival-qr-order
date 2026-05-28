@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAdmin } from '@/lib/auth';
+import { getOrderServiceProgress, normalizeOrderItems } from '@/lib/serviceItems';
 
 function isSessionClearable(orders) {
   return orders.every((order) =>
@@ -68,21 +69,25 @@ export async function GET(request) {
     }
 
     const grouped = (sessions || []).map((session) => {
-      const sessionOrders = orders.filter((order) => order.session_id === session.id);
+      const sessionOrders = orders
+        .filter((order) => order.session_id === session.id)
+        .map((order) => ({ ...order, items: normalizeOrderItems(order.items || []), serviceProgress: getOrderServiceProgress(order) }));
       const summary = buildSessionSummary(sessionOrders);
       return {
         ...session,
         orders: sessionOrders,
         clearable: isSessionClearable(sessionOrders),
         unpaidCount: summary.unpaidCount,
-        unservedCount: sessionOrders.filter((order) => !['served', 'cancelled'].includes(order.kitchen_status)).length,
+        unservedCount: sessionOrders.filter((order) => order.kitchen_status !== 'cancelled' && !getOrderServiceProgress(order).allServed).length,
         totalAmount: summary.totalAmount,
         paidAmount: summary.paidAmount,
         unpaidAmount: summary.unpaidAmount,
         cancelledAmount: summary.cancelledAmount,
-        summary
+        summary,
+        firstOrderAt: sessionOrders[0]?.created_at || session.opened_at,
+        lastOrderAt: sessionOrders[sessionOrders.length - 1]?.created_at || session.opened_at
       };
-    });
+    }).sort((a, b) => new Date(a.firstOrderAt).getTime() - new Date(b.firstOrderAt).getTime());
 
     return NextResponse.json({ tables, sessions: grouped, serverTime: new Date().toISOString() });
   } catch (error) {

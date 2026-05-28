@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { resolveTableKey } from '@/lib/tables';
+import { getOrderServiceProgress, normalizeOrderItems } from '@/lib/serviceItems';
 
 function buildSummary(orders) {
   return orders.reduce((acc, order) => {
@@ -82,7 +83,7 @@ export async function GET(_request, context) {
       tableNumber,
       table,
       session,
-      orders: orders || [],
+      orders: (orders || []).map((order) => ({ ...order, items: normalizeOrderItems(order.items || []), serviceProgress: getOrderServiceProgress(order) })),
       summary: buildSummary(orders || []),
       serverTime: new Date().toISOString()
     });

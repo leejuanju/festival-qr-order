@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import BackButton from '@/components/BackButton';
 import StaffLogin from '@/components/StaffLogin';
 import { formatWon } from '@/lib/format';
+import { serveComponentsToText } from '@/lib/serviceItems';
 
 const STORAGE_KEY = 'festival_admin_pin';
-const emptyMenu = { name: '', description: '', category: '메인', price: 0, image_url: '', sort_order: 100, is_visible: true, is_sold_out: false };
+const emptyMenu = { name: '', description: '', category: '메인', price: 0, image_url: '', sort_order: 100, is_visible: true, is_sold_out: false, serve_components_text: '' };
 
 const waitStatusLabels = {
   waiting: '대기중',
@@ -25,7 +26,8 @@ function MenuEditor({ item, onSave, busy }) {
     sort_order: item.sort_order,
     image_url: item.image_url || '',
     is_visible: item.is_visible,
-    is_sold_out: item.is_sold_out
+    is_sold_out: item.is_sold_out,
+    serve_components_text: serveComponentsToText(item.serve_components)
   }));
 
   useEffect(() => {
@@ -37,7 +39,8 @@ function MenuEditor({ item, onSave, busy }) {
       sort_order: item.sort_order,
       image_url: item.image_url || '',
       is_visible: item.is_visible,
-      is_sold_out: item.is_sold_out
+      is_sold_out: item.is_sold_out,
+      serve_components_text: serveComponentsToText(item.serve_components)
     });
   }, [item]);
 
@@ -57,6 +60,16 @@ function MenuEditor({ item, onSave, busy }) {
           <input className="input" value={draft.image_url} onChange={(e) => setDraft({ ...draft, image_url: e.target.value })} placeholder="https://..." />
         </label>
         {draft.image_url && <img className="admin-menu-thumb" src={draft.image_url} alt="메뉴 이미지 미리보기" />}
+        <label>
+          <span className="label">제공 체크 구성</span>
+          <textarea
+            className="textarea compact"
+            value={draft.serve_components_text}
+            onChange={(e) => setDraft({ ...draft, serve_components_text: e.target.value })}
+            placeholder={"세트일 때만 입력. 예:\n닭꼬치|2\n염통꼬치|3\n하이볼|2"}
+          />
+          <span className="small muted">한 줄에 하나씩 <strong>이름|수량</strong> 형식입니다. 비워두면 메뉴명 1개 단위로 제공 체크됩니다.</span>
+        </label>
       </div>
 
       <div className="stack">
@@ -148,6 +161,16 @@ function NewMenuForm({ onCreate, busy }) {
       <label>
         <span className="label">이미지 URL</span>
         <input className="input" value={draft.image_url} onChange={(e) => setDraft({ ...draft, image_url: e.target.value })} placeholder="https://..." />
+      </label>
+      <label>
+        <span className="label">제공 체크 구성</span>
+        <textarea
+          className="textarea compact"
+          value={draft.serve_components_text}
+          onChange={(e) => setDraft({ ...draft, serve_components_text: e.target.value })}
+          placeholder={"세트일 때만 입력. 예:\n어묵탕|1\n닭꼬치|2\n소주/맥주|1"}
+        />
+        <span className="small muted">세트 추가 시 구성품을 입력하면 주방/홀에서 각각 제공 체크할 수 있습니다.</span>
       </label>
       <button className="btn primary btn-lg" disabled={busy} type="submit">메뉴 추가</button>
     </form>

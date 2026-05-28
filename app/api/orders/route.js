@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { resolveTableKey } from '@/lib/tables';
+import { buildServiceItems } from '@/lib/serviceItems';
 
 function normalizeQuantity(value) {
   const n = Number(value);
@@ -44,7 +45,7 @@ export async function POST(request) {
     const ids = Array.from(requestedMap.keys());
     const { data: menuRows, error: menuError } = await supabase
       .from('menu_items')
-      .select('id,name,price,image_url,is_visible,is_sold_out')
+      .select('id,name,price,image_url,is_visible,is_sold_out,serve_components')
       .in('id', ids);
 
     if (menuError) throw menuError;
@@ -68,7 +69,8 @@ export async function POST(request) {
         price: row.price,
         quantity,
         subtotal,
-        image_url: row.image_url || ''
+        image_url: row.image_url || '',
+        service_items: buildServiceItems(row, quantity)
       });
     }
 

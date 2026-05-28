@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import BackButton from '@/components/BackButton';
 import StaffLogin from '@/components/StaffLogin';
-import { ageMinutes, formatShortTime, kitchenLabels } from '@/lib/format';
+import { ageMinutes, formatShortTime } from '@/lib/format';
+import ServiceItemChecklist from '@/components/ServiceItemChecklist';
 
 const STORAGE_KEY = 'festival_kitchen_pin';
 
@@ -73,6 +74,32 @@ export default function KitchenPage() {
       }
       if (!res.ok) throw new Error(json.error || '상태 변경에 실패했습니다.');
       setMessage(kitchenStatus === 'served' ? '제공완료 처리했습니다.' : '주문을 확인했습니다.');
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+  async function setServiceItemStatus(orderId, serviceItemId, served) {
+    setLoading(true);
+    setError('');
+    setMessage('');
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-staff-pin': pin },
+        body: JSON.stringify({ action: 'set_service_item_served', serviceItemId, served })
+      });
+      const json = await res.json();
+      if (res.status === 401) {
+        logout('PIN이 올바르지 않습니다. 다시 입력하세요.');
+        return;
+      }
+      if (!res.ok) throw new Error(json.error || '제공 체크 변경에 실패했습니다.');
+      setMessage(served ? '제공 항목을 체크했습니다.' : '제공 체크를 되돌렸습니다.');
       await load();
     } catch (err) {
       setError(err.message);
@@ -152,11 +179,13 @@ export default function KitchenPage() {
                       <span className={`badge ${checked ? 'cooking' : 'received'}`}>{checked ? '확인됨' : '새 주문'}</span>
                       <span className="small muted">{formatShortTime(order.created_at)} · {ageMinutes(order.created_at)}분 경과</span>
                     </div>
-                    <ul className="kitchen-simple-items">
-                      {order.items.map((item) => (
-                        <li key={item.menu_item_id}><strong>{item.name}</strong><span>{item.quantity}개</span></li>
-                      ))}
-                    </ul>
+                    <ServiceItemChecklist
+                      order={order}
+                      onToggle={setServiceItemStatus}
+                      disabled={loading}
+                      role="kitchen"
+                    />
+                    <div className="small muted">제공 체크 {order.serviceProgress?.served || 0}/{order.serviceProgress?.total || 0}</div>
                   </div>
                 </div>
                 <div className="kitchen-simple-actions">
@@ -172,7 +201,7 @@ export default function KitchenPage() {
                     disabled={loading}
                     onClick={() => setKitchenStatus(order.id, 'served')}
                   >
-                    제공완료
+                    전체 제공완료
                   </button>
                 </div>
               </article>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireKitchenOrAdmin } from '@/lib/auth';
+import { getOrderServiceProgress, normalizeOrderItems } from '@/lib/serviceItems';
 
 export async function GET(request) {
   const auth = requireKitchenOrAdmin(request);
@@ -28,7 +29,9 @@ export async function GET(request) {
 
     if (ordersError) throw ordersError;
 
-    const activeOrders = (orders || []).filter((order) => !['served', 'cancelled'].includes(order.kitchen_status));
+    const activeOrders = (orders || [])
+      .map((order) => ({ ...order, items: normalizeOrderItems(order.items || []), serviceProgress: getOrderServiceProgress(order) }))
+      .filter((order) => order.kitchen_status !== 'cancelled' && !order.serviceProgress.allServed);
     return NextResponse.json({ orders: activeOrders, serverTime: new Date().toISOString() });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { requireAdmin } from '@/lib/auth';
+import { normalizeServeComponents, parseServeComponentsText } from '@/lib/serviceItems';
 
 function normalizeMenuPatch(body, { requireName = false } = {}) {
   const patch = {};
-  const allowed = ['name', 'description', 'category', 'price', 'image_url', 'is_visible', 'is_sold_out', 'sort_order'];
+  const allowed = ['name', 'description', 'category', 'price', 'image_url', 'is_visible', 'is_sold_out', 'sort_order', 'serve_components'];
   for (const key of allowed) {
     if (body[key] !== undefined) patch[key] = body[key];
   }
@@ -24,6 +25,8 @@ function normalizeMenuPatch(body, { requireName = false } = {}) {
     patch.price = price;
   }
   if (patch.sort_order !== undefined) patch.sort_order = Number(patch.sort_order) || 0;
+  if (body.serve_components_text !== undefined) patch.serve_components = parseServeComponentsText(body.serve_components_text);
+  else if (patch.serve_components !== undefined) patch.serve_components = normalizeServeComponents(patch.serve_components);
   if (patch.is_visible !== undefined) patch.is_visible = Boolean(patch.is_visible);
   if (patch.is_sold_out !== undefined) patch.is_sold_out = Boolean(patch.is_sold_out);
 
@@ -62,7 +65,9 @@ export async function POST(request) {
       sort_order: body.sort_order ?? 100,
       image_url: body.image_url || '',
       is_visible: body.is_visible ?? true,
-      is_sold_out: body.is_sold_out ?? false
+      is_sold_out: body.is_sold_out ?? false,
+      serve_components: body.serve_components,
+      serve_components_text: body.serve_components_text
     }, { requireName: true });
     if (error) return NextResponse.json({ error }, { status: 400 });
 

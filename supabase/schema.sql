@@ -62,6 +62,7 @@ create table public.menu_items (
   category text not null default '메뉴',
   price integer not null check (price >= 0),
   image_url text not null default '',
+  serve_components jsonb not null default '[]'::jsonb,
   is_visible boolean not null default true,
   is_sold_out boolean not null default false,
   sort_order integer not null default 0,
@@ -145,22 +146,22 @@ update public.booth_tables
 set hero_image_url = '/assets/bear-table-12.png'
 where number = 12;
 
-insert into public.menu_items(name, description, category, price, sort_order, image_url) values
-('닭꼬치 2개', '직화 닭꼬치 2개 구성', '메인', 7000, 10, ''),
-('염통꼬치 5개', '염통꼬치 5개 구성', '메인', 7000, 20, ''),
-('어묵탕', '따뜻한 어묵탕', '메인', 7000, 30, ''),
-('계란찜', '부드러운 계란찜', '메인', 5000, 40, ''),
-('김치전', '바삭한 김치전', '메인', 8000, 50, ''),
-('부추전', '고소한 부추전', '메인', 8000, 60, ''),
-('황도 화채', '시원한 황도 화채', '메인', 7000, 70, ''),
-('죠스바 초밥 + 조안나', '죠스바 초밥과 조안나 구성', '메인', 7000, 80, ''),
-('닭꼬치 2개 + 염통꼬치 3개 + 하이볼 2잔', '꼬치와 하이볼 2잔 세트', '세트', 25000, 110, ''),
-('랜덤전 + 막걸리 + 계란찜', '전, 막걸리, 계란찜 세트', '세트', 17000, 120, ''),
-('어묵탕 + 닭꼬치 2개 + 소주/맥주', '어묵탕, 닭꼬치, 주류 구성', '세트', 23000, 130, ''),
-('하이볼', '하이볼 1잔', '음료', 8000, 210, ''),
-('소주', '소주 1병', '음료', 5000, 220, ''),
-('맥주', '맥주 1병', '음료', 5000, 230, ''),
-('막걸리', '막걸리 1병', '음료', 5000, 240, '');
+insert into public.menu_items(name, description, category, price, sort_order, image_url, serve_components) values
+('닭꼬치 2개', '직화 닭꼬치 2개 구성', '메인', 7000, 10, '', '[]'::jsonb),
+('염통꼬치 5개', '염통꼬치 5개 구성', '메인', 7000, 20, '', '[]'::jsonb),
+('어묵탕', '따뜻한 어묵탕', '메인', 7000, 30, '', '[]'::jsonb),
+('계란찜', '부드러운 계란찜', '메인', 5000, 40, '', '[]'::jsonb),
+('김치전', '바삭한 김치전', '메인', 8000, 50, '', '[]'::jsonb),
+('부추전', '고소한 부추전', '메인', 8000, 60, '', '[]'::jsonb),
+('황도 화채', '시원한 황도 화채', '메인', 7000, 70, '', '[]'::jsonb),
+('죠스바 초밥 + 조안나', '죠스바 초밥과 조안나 구성', '메인', 7000, 80, '', '[]'::jsonb),
+('닭꼬치 2개 + 염통꼬치 3개 + 하이볼 2잔', '꼬치와 하이볼 2잔 세트', '세트', 25000, 110, '', '[{"name":"닭꼬치","quantity":2},{"name":"염통꼬치","quantity":3},{"name":"하이볼","quantity":2}]'::jsonb),
+('랜덤전 + 막걸리 + 계란찜', '전, 막걸리, 계란찜 세트', '세트', 17000, 120, '', '[{"name":"랜덤전","quantity":1},{"name":"막걸리","quantity":1},{"name":"계란찜","quantity":1}]'::jsonb),
+('어묵탕 + 닭꼬치 2개 + 소주/맥주', '어묵탕, 닭꼬치, 주류 구성', '세트', 23000, 130, '', '[{"name":"어묵탕","quantity":1},{"name":"닭꼬치","quantity":2},{"name":"소주/맥주","quantity":1}]'::jsonb),
+('하이볼', '하이볼 1잔', '음료', 8000, 210, '', '[]'::jsonb),
+('소주', '소주 1병', '음료', 5000, 220, '', '[]'::jsonb),
+('맥주', '맥주 1병', '음료', 5000, 230, '', '[]'::jsonb),
+('막걸리', '막걸리 1병', '음료', 5000, 240, '', '[]'::jsonb);
 
 -- 테이블의 현재 열린 세션을 가져오거나 새로 만들고, 주문을 생성합니다.
 create or replace function public.create_order(

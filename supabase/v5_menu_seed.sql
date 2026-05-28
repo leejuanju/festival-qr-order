@@ -29,3 +29,19 @@ values
   ('소주', '소주 1병', '음료', 5000, true, false, 220, ''),
   ('맥주', '맥주 1병', '음료', 5000, true, false, 230, ''),
   ('막걸리', '막걸리 1병', '음료', 5000, true, false, 240, '');
+
+-- v6.5 이후 세트 제공 체크 구성 기본값
+alter table public.menu_items
+  add column if not exists serve_components jsonb not null default '[]'::jsonb;
+
+update public.menu_items
+set serve_components = '[{"name":"닭꼬치","quantity":2},{"name":"염통꼬치","quantity":3},{"name":"하이볼","quantity":2}]'::jsonb
+where name = '닭꼬치 2개 + 염통꼬치 3개 + 하이볼 2잔';
+
+update public.menu_items
+set serve_components = '[{"name":"랜덤전","quantity":1},{"name":"막걸리","quantity":1},{"name":"계란찜","quantity":1}]'::jsonb
+where name = '랜덤전 + 막걸리 + 계란찜';
+
+update public.menu_items
+set serve_components = '[{"name":"어묵탕","quantity":1},{"name":"닭꼬치","quantity":2},{"name":"소주/맥주","quantity":1}]'::jsonb
+where name = '어묵탕 + 닭꼬치 2개 + 소주/맥주';

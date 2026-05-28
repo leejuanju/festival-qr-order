@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import BackButton from '@/components/BackButton';
 import StaffLogin from '@/components/StaffLogin';
 import StatusBadge from '@/components/StatusBadge';
+import ServiceItemChecklist from '@/components/ServiceItemChecklist';
 import { ageMinutes, formatShortTime, formatWon, kitchenLabels, paymentLabels } from '@/lib/format';
 
 const STORAGE_KEY = 'festival_admin_pin';
@@ -88,6 +89,32 @@ export default function HallPage() {
       }
       if (!res.ok) throw new Error(json.error || '처리에 실패했습니다.');
       if (successMessage) setMessage(successMessage);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+  async function setServiceItemStatus(orderId, serviceItemId, served) {
+    setLoading(true);
+    setError('');
+    setMessage('');
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-staff-pin': pin },
+        body: JSON.stringify({ action: 'set_service_item_served', serviceItemId, served })
+      });
+      const json = await res.json();
+      if (res.status === 401) {
+        logout('PIN이 올바르지 않습니다. 다시 입력하세요.');
+        return;
+      }
+      if (!res.ok) throw new Error(json.error || '제공 체크 변경에 실패했습니다.');
+      setMessage(served ? '제공 항목을 체크했습니다.' : '제공 체크를 되돌렸습니다.');
       await load();
     } catch (err) {
       setError(err.message);
@@ -313,7 +340,7 @@ export default function HallPage() {
                 <div className="eyebrow">Table Session</div>
                 <h2>{session.table_number}번 테이블 · S{String(session.session_no).padStart(3, '0')}</h2>
                 <p className="muted">
-                  총 {formatWon(session.totalAmount)} · 결제확인 {formatWon(session.paidAmount)} · 남은 결제 {formatWon(session.unpaidAmount)} · 미제공 {session.unservedCount}건
+                  첫 주문 {formatShortTime(session.firstOrderAt)} · 총 {formatWon(session.totalAmount)} · 결제확인 {formatWon(session.paidAmount)} · 남은 결제 {formatWon(session.unpaidAmount)} · 미제공 {session.unservedCount}건
                 </p>
               </div>
               <div className="row">
@@ -342,11 +369,14 @@ export default function HallPage() {
                       <StatusBadge value={order.kitchen_status} labels={kitchenLabels} />
                     </div>
                   </div>
-                  <ul className="order-items">
-                    {order.items.map((item) => (
-                      <li key={item.menu_item_id}>{item.name} {item.quantity}개 · {formatWon(item.subtotal)}</li>
-                    ))}
-                  </ul>
+                  <ServiceItemChecklist
+                    order={order}
+                    onToggle={setServiceItemStatus}
+                    disabled={loading || order.kitchen_status === 'cancelled'}
+                    compact
+                    role="hall"
+                  />
+                  <div className="small muted">제공 체크 {order.serviceProgress?.served || 0}/{order.serviceProgress?.total || 0}</div>
                   <div className="hr" />
                   <div className="row-between">
                     <strong className="big">{formatWon(order.total_amount)}</strong>
@@ -360,7 +390,7 @@ export default function HallPage() {
                       <button className="btn" onClick={() => patchOrder(order.id, { action: 'mark_unpaid' }, '미결제로 되돌렸습니다.')}>미결제로 되돌림</button>
                     )}
                     {order.kitchen_status !== 'served' && order.kitchen_status !== 'cancelled' && (
-                      <button className="btn blue" onClick={() => patchOrder(order.id, { action: 'set_kitchen_status', kitchenStatus: 'served' }, '제공완료 처리했습니다.')}>제공완료</button>
+                      <button className="btn blue" onClick={() => patchOrder(order.id, { action: 'set_kitchen_status', kitchenStatus: 'served' }, '제공완료 처리했습니다.')}>전체 제공완료</button>
                     )}
                     {order.payment_status !== 'cancelled' && (
                       <button className="btn danger" onClick={() => window.confirm('이 주문을 취소 처리할까요?') && patchOrder(order.id, { action: 'cancel' }, '주문을 취소했습니다.')}>취소</button>
